@@ -5,6 +5,8 @@ import os
 from dotenv import load_dotenv
 import time
 
+debug = True
+
 
 def main():
     bot_token = get_env_value('BOT_TOKEN')
@@ -23,6 +25,8 @@ def main():
                 url = get_better_image(url)
 
                 message = create_message(title, author)
+                if debug:
+                    print('sending photo... (message: ' + message + ')')
                 send_photo(url, message, bot_token, channel_id)
 
             # sleep for 10 minutes
