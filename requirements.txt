@@ -1,4 +1,4 @@
 beautifulsoup4
-dotenv
+python-dotenv
 urllib3
 requests
