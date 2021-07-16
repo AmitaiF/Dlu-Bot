@@ -7,6 +7,7 @@ from scrapingConsts import *
 # our exceptions, from exceptions.py
 from exceptions import *
 import os
+import sys
 
 
 def get_new_books(ignore_warnings=False):
@@ -71,13 +72,19 @@ def contains_hebrew(string):
     return any("\u0590" <= c <= "\u05EA" for c in string)
 
 
+# get full path to the current dir
 here = os.path.abspath(os.path.dirname(__file__))
+# add slashes according to the os platform
+if sys.platform == 'linux':
+    here += '/'
+elif sys.platform == 'win32':
+    here += '\\'
 
 
 def get_last_book():
     last_book = ''
     # open the json file
-    json_file = open(here + '\\lastBook.json', encoding="utf8")
+    json_file = open(here + 'lastBook.json', encoding="utf8")
     if json_file.closed:
         raise OpenLastBookFileFailed
     # load the data
@@ -92,7 +99,7 @@ def get_last_book():
 
 def set_new_book(title):
     # open the json file for writing
-    json_file = open('lastBook.json', 'w', encoding="utf8")
+    json_file = open(here + 'lastBook.json', 'w', encoding="utf8")
     if json_file.closed:
         raise OpenLastBookFileFailed
     # make dictionary for the 'last book'
