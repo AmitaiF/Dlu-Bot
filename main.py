@@ -11,21 +11,24 @@ def main():
     channel_id = get_env_value('CHANNEL_ID')
 
     while True:
-        new_books = get_new_books(ignore_warnings=True)
+        try:
+            new_books = get_new_books(ignore_warnings=True)
 
-        for book in new_books:
-            title = book[0]
-            author = book[1]
-            url = book[2]
-            # this url gives small image.
-            # some changes on the url can bring better image
-            url = get_better_image(url)
+            for book in new_books:
+                title = book[0]
+                author = book[1]
+                url = book[2]
+                # this url gives small image.
+                # some changes on the url can bring better image
+                url = get_better_image(url)
 
-            message = create_message(title, author)
-            send_photo(url, message, bot_token, channel_id)
+                message = create_message(title, author)
+                send_photo(url, message, bot_token, channel_id)
 
-        # sleep for 10 minutes
-        time.sleep(60 * 10)
+            # sleep for 10 minutes
+            time.sleep(60 * 10)
+        except Exception as e:
+            print(e)
 
 
 def send_message(message, bot_token, channel_id):
