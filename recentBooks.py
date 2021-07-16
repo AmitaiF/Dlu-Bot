@@ -6,6 +6,7 @@ import json
 from scrapingConsts import *
 # our exceptions, from exceptions.py
 from exceptions import *
+import os
 
 
 def get_new_books(ignore_warnings=False):
@@ -70,10 +71,13 @@ def contains_hebrew(string):
     return any("\u0590" <= c <= "\u05EA" for c in string)
 
 
+here = os.path.abspath(os.path.dirname(__file__))
+
+
 def get_last_book():
     last_book = ''
     # open the json file
-    json_file = open('lastBook.json', encoding="utf8")
+    json_file = open(here + '\\lastBook.json', encoding="utf8")
     if json_file.closed:
         raise OpenLastBookFileFailed
     # load the data

@@ -46,21 +46,24 @@ def get_env_value(name):
 
 
 def get_better_image(url):
-    new_url = ''
-    url = url.strip('/')
+    try:
+        new_url = ''
+        url = url.strip('/')
 
-    for i in [0, 1, 2, 6]:
-        new_url += url.split('/')[i] + '/'
+        for i in [0, 1, 2, 6]:
+            new_url += url.split('/')[i] + '/'
 
-    new_url = new_url[:new_url.find('150')] + '100' + new_url[new_url.find('150')+3:]
-    new_url = new_url[:new_url.rfind('150')] + '100' + new_url[new_url.rfind('150')+3:]
+        new_url = new_url[:new_url.find('150')] + '100' + new_url[new_url.find('150')+3:]
+        new_url = new_url[:new_url.rfind('150')] + '100' + new_url[new_url.rfind('150')+3:]
 
-    new_url = new_url.strip('/')
+        new_url = new_url.strip('/')
 
-    test = requests.get('http://' + new_url)
-    if test.status_code == 200:
-        return new_url
-    return url
+        test = requests.get('http://' + new_url)
+        if test.status_code == 200:
+            return new_url
+        return url
+    except Exception:
+        return url
 
 
 def create_message(title, author):
