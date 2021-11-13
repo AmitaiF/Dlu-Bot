@@ -10,18 +10,21 @@ import os
 import sys
 
 
-def get_new_books(ignore_warnings=False):
+def get_new_books(ignore_warnings=False, debug=False):
     if ignore_warnings:
         disable_warnings()
-
-    #  get the main page html
-    page = requests.get(URL + MAIN_PAGE, verify=False)
-    # make it a BeautifulSoup object
-    soup = BeautifulSoup(page.content, 'html.parser')
 
     # get the last book we got in the last time
     # we used this program
     last_book = get_last_book()
+
+    # use a seeeion for cookies
+    session = requests.Session()
+
+    #  get the main page html
+    page = session.get(URL + MAIN_PAGE, verify=False)
+    # make it a BeautifulSoup object
+    soup = BeautifulSoup(page.content, 'html.parser')
 
     # get the "recent books" url (we need to do this
     # because this website creates new url for the "recent
@@ -29,10 +32,10 @@ def get_new_books(ignore_warnings=False):
     recent_page = soup.body.findAll(RECENT_TAG, text=RECENT_TEXT)[0]['href']
 
     reached_last_book = False
+    books = []
 
     page_counter = '&Page=0'
-
-    books = []
+    recent_books_url = ''
 
     while not reached_last_book:
         # every iteration we increase the page counter
@@ -40,12 +43,16 @@ def get_new_books(ignore_warnings=False):
         # until we reach the last book
         page_counter = inc_page_counter(page_counter)
 
-        if page_counter == '&Page=1':
+        if debug:
+            print('getting', page_counter)
+
+        if recent_books_url == '':
             # get the 'recent books' html content
-            page = requests.get(URL + recent_page, verify=False)
+            page = session.get(URL + recent_page + page_counter, verify=False)
+            recent_books_url = page.url
         else:
-            # page = requests.get(page.url + page_counter, verify=False)
-            page = get_next_page(soup)
+            page = session.get(recent_books_url + page_counter, verify=False)
+
         # make it a BeautifulSoup object
         soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -83,13 +90,6 @@ def get_new_books(ignore_warnings=False):
             books.append((title, author, image_link))
 
     return books
-
-
-def get_next_page(soup):
-    current_page = soup.find_all('span', class_='paging-current-page')
-    if isinstance(current_page, list):
-        current_page[-1].findNextSibling().attrs['href']
-        
 
 
 def inc_page_counter(page_counter):
@@ -151,5 +151,5 @@ def print_titles(books):
 if __name__ == '__main__':
     if DISABLE_WARNINGS:
         disable_warnings()
-    new_books = get_new_books()
+    new_books = get_new_books(debug=True)
     print_titles(new_books)

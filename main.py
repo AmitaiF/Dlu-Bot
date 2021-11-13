@@ -1,6 +1,6 @@
 from recentBooks import get_new_books
 import requests
-from telegramConsts import *
+import telegramConsts as telegram_consts
 import os
 from dotenv import load_dotenv
 import time
@@ -36,15 +36,11 @@ def main():
 
 
 def send_message(message, bot_token, channel_id):
-    requests.get(SEND_MSG.format(bot_token, channel_id, message))
+    requests.get(telegram_consts.SEND_MSG.format(bot_token, channel_id, message))
 
 
 def send_photo(photo_url, caption, bot_token, channel_id):
-    requests.get(SEND_PHOTO.format(bot_token, channel_id, photo_url, caption))
-
-
-def alert_new_book(title, author, image_link):
-    pass
+    requests.get(telegram_consts.SEND_PHOTO.format(bot_token, channel_id, photo_url, caption))
 
 
 def get_env_value(name):
