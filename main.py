@@ -15,7 +15,7 @@ def main():
     while True:
         try:
             new_books = get_new_books(ignore_warnings=True)
-
+            new_books.reverse()
             for book in new_books:
                 title = book[0]
                 author = book[1]
@@ -23,8 +23,9 @@ def main():
                 # this url gives small image.
                 # some changes on the url can bring better image
                 url = get_better_image(url)
+                description = book[3]
 
-                message = create_message(title, author)
+                message = create_message(title, author, description)
                 if debug:
                     print('sending photo... (message: ' + message + ')')
                 send_photo(url, message, bot_token, channel_id)
@@ -69,12 +70,13 @@ def get_better_image(url):
         return url
 
 
-def create_message(title, author):
+def create_message(title, author, description):
     msg = ''
     msg += '<b>' + title + '</b>'
-    msg += '\n'
+    msg += ' / '
     msg += author
-
+    msg += '\n'
+    msg += description
     return msg
 
 

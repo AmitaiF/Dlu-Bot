@@ -30,4 +30,16 @@ IMAGES_TAG = 'img'
 # class for finding the images' link
 IMAGES_CLASS = 'wtil-cover lzld'
 
+# tag for finding the descriptions' links
+DESCRIPTION_TAG = 'span'
+
+# class for finding the descriptions' link
+DESCRIPTION_CLASS = 'desc-exp-col'
+
+# tag for finding links
+LINK_TAG = 'a'
+
+# class for finding links
+LINK_CLASS = 'tc-title'
+
 DISABLE_WARNINGS = True

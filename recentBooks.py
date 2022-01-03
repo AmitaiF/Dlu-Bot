@@ -3,16 +3,22 @@ from bs4 import BeautifulSoup
 import urllib3
 import json
 # const values from settings.py
-from scrapingConsts import *
+import scrapingConsts as scraping_consts
 # our exceptions, from exceptions.py
 from exceptions import *
 import os
 import sys
 
+session = None
+reached_last_book = False
+
 
 def get_new_books(ignore_warnings=False, debug=False):
     if ignore_warnings:
         disable_warnings()
+
+    global session
+    global reached_last_book
 
     # get the last book we got in the last time
     # we used this program
@@ -22,16 +28,16 @@ def get_new_books(ignore_warnings=False, debug=False):
     session = requests.Session()
 
     #  get the main page html
-    page = session.get(URL + MAIN_PAGE, verify=False)
+    page = session.get(scraping_consts.URL + scraping_consts.MAIN_PAGE, verify=False)
     # make it a BeautifulSoup object
     soup = BeautifulSoup(page.content, 'html.parser')
 
     # get the "recent books" url (we need to do this
     # because this website creates new url for the "recent
     # books" page for each request)
-    recent_page = soup.body.findAll(RECENT_TAG, text=RECENT_TEXT)[0]['href']
+    recent_page = soup.body.findAll(scraping_consts.RECENT_TAG, text=scraping_consts.RECENT_TEXT)[0]['href']
 
-    reached_last_book = False
+    # reached_last_book = False
     books = []
 
     page_counter = '&Page=0'
@@ -48,48 +54,66 @@ def get_new_books(ignore_warnings=False, debug=False):
 
         if recent_books_url == '':
             # get the 'recent books' html content
-            page = session.get(URL + recent_page + page_counter, verify=False)
+            page = session.get(scraping_consts.URL + recent_page + page_counter, verify=False)
             recent_books_url = page.url
         else:
             page = session.get(recent_books_url + page_counter, verify=False)
 
-        # make it a BeautifulSoup object
-        soup = BeautifulSoup(page.content, 'html.parser')
-
-        # get all titles
-        recent_titles = soup.find_all(TITLES_TAG, class_=TITLES_CLASS)
-        # get all authors
-        recent_authors = soup.find_all(AUTHOR_TAG, class_=AUTHOR_CLASS)
-        # get all the images' links
-        recent_images = soup.find_all(IMAGES_TAG, class_=IMAGES_CLASS)
-
-        # zip the titles and authors, and iterate them
-        for book in zip(recent_titles, recent_authors, recent_images):
-            # get the book's title
-            title_tag = book[0]
-            title = title_tag.findChild().text
-            # ignore the book in case of non-hebrew title
-            if not contains_hebrew(title):
-                continue
-
-            if last_book == title:
-                # we reached the last book
-                reached_last_book = True
-                # set the 'last book' to the newest book we got now
-                if len(books) > 0:
-                    set_new_book(books[0][0])
-                break
-
-            # get the book's author
-            author_tag = book[1]
-            author = author_tag.findChild().text
-
-            # get the book's image link
-            image_link = book[2]['data-original']
-
-            books.append((title, author, image_link))
+        add_new_books(books, page, last_book)
 
     return books
+
+
+def add_new_books(books, page, last_book):
+    global reached_last_book
+    # make it a BeautifulSoup object
+    soup = BeautifulSoup(page.content, 'html.parser')
+
+    # get all titles
+    titles = soup.find_all(scraping_consts.TITLES_TAG, class_=scraping_consts.TITLES_CLASS)
+    # get all authors
+    authors = soup.find_all(scraping_consts.AUTHOR_TAG, class_=scraping_consts.AUTHOR_CLASS)
+    # get all the images' links
+    images = soup.find_all(scraping_consts.IMAGES_TAG, class_=scraping_consts.IMAGES_CLASS)
+    # get all links
+    links = soup.find_all(scraping_consts.LINK_TAG, class_=scraping_consts.LINK_CLASS)
+
+    # zip the titles and authors, and iterate them
+    for book in zip(titles, authors, images, links):
+        # get the book's title
+        title_tag = book[0]
+        title = title_tag.findChild().text
+        # ignore the book in case of non-hebrew title
+        if not contains_hebrew(title):
+            continue
+
+        if last_book == title:
+            # we reached the last book
+            reached_last_book = True
+            # set the 'last book' to the newest book we got now
+            if len(books) > 0:
+                set_new_book(books[0][0])
+            break
+
+        # get the book's author
+        author_tag = book[1]
+        author = author_tag.findChild().text
+
+        # get the book's image link
+        image_link = book[2]['data-original']
+
+        description = get_book_description(book[3])
+
+        books.append((title, author, image_link, description))
+
+
+def get_book_description(link_element):
+    global session
+    link = link_element['href']
+    page = session.get(scraping_consts.URL + '/' + link)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    description = soup.find_all(scraping_consts.DESCRIPTION_TAG, class_=scraping_consts.DESCRIPTION_CLASS)[0]
+    return description.text
 
 
 def inc_page_counter(page_counter):
@@ -149,7 +173,7 @@ def print_titles(books):
 
 
 if __name__ == '__main__':
-    if DISABLE_WARNINGS:
+    if scraping_consts.DISABLE_WARNINGS:
         disable_warnings()
     new_books = get_new_books(debug=True)
     print_titles(new_books)
