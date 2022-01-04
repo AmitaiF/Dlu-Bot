@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import urllib3
 import json
 # const values from settings.py
-import scrapingConsts as scraping_consts
+import scrapingConsts as sc
 # our exceptions, from exceptions.py
 from exceptions import *
 import os
@@ -28,14 +28,14 @@ def get_new_books(ignore_warnings=False, debug=False):
     session = requests.Session()
 
     #  get the main page html
-    page = session.get(scraping_consts.URL + scraping_consts.MAIN_PAGE, verify=False)
+    page = session.get(sc.URL + sc.MAIN_PAGE, verify=False)
     # make it a BeautifulSoup object
     soup = BeautifulSoup(page.content, 'html.parser')
 
     # get the "recent books" url (we need to do this
     # because this website creates new url for the "recent
     # books" page for each request)
-    recent_page = soup.body.findAll(scraping_consts.RECENT_TAG, text=scraping_consts.RECENT_TEXT)[0]['href']
+    recent_page = soup.body.findAll(sc.RECENT_TAG, text=sc.RECENT_TEXT)[0]['href']
 
     # reached_last_book = False
     books = []
@@ -54,11 +54,11 @@ def get_new_books(ignore_warnings=False, debug=False):
 
         if recent_books_url == '':
             # get the 'recent books' html content
-            page = session.get(scraping_consts.URL + recent_page + page_counter, verify=False)
+            page = session.get(sc.URL + recent_page + page_counter, verify=False)
             recent_books_url = page.url
         else:
             page = session.get(recent_books_url + page_counter, verify=False)
-
+        # get all books from this page, and add them to the list
         add_new_books(books, page, last_book)
 
     return books
@@ -70,13 +70,13 @@ def add_new_books(books, page, last_book):
     soup = BeautifulSoup(page.content, 'html.parser')
 
     # get all titles
-    titles = soup.find_all(scraping_consts.TITLES_TAG, class_=scraping_consts.TITLES_CLASS)
+    titles = soup.find_all(sc.TITLES_TAG, class_=sc.TITLES_CLASS)
     # get all authors
-    authors = soup.find_all(scraping_consts.AUTHOR_TAG, class_=scraping_consts.AUTHOR_CLASS)
+    authors = soup.find_all(sc.AUTHOR_TAG, class_=sc.AUTHOR_CLASS)
     # get all the images' links
-    images = soup.find_all(scraping_consts.IMAGES_TAG, class_=scraping_consts.IMAGES_CLASS)
+    images = soup.find_all(sc.IMAGES_TAG, class_=sc.IMAGES_CLASS)
     # get all links
-    links = soup.find_all(scraping_consts.LINK_TAG, class_=scraping_consts.LINK_CLASS)
+    links = soup.find_all(sc.LINK_TAG, class_=sc.LINK_CLASS)
 
     # zip the titles and authors, and iterate them
     for book in zip(titles, authors, images, links):
@@ -110,9 +110,9 @@ def add_new_books(books, page, last_book):
 def get_book_description(link_element):
     global session
     link = link_element['href']
-    page = session.get(scraping_consts.URL + '/' + link)
+    page = session.get(sc.URL + '/' + link)
     soup = BeautifulSoup(page.content, 'html.parser')
-    description = soup.find_all(scraping_consts.DESCRIPTION_TAG, class_=scraping_consts.DESCRIPTION_CLASS)[0]
+    description = soup.find_all(sc.DESCRIPTION_TAG, class_=sc.DESCRIPTION_CLASS)[0]
     return description.text
 
 
@@ -173,7 +173,7 @@ def print_titles(books):
 
 
 if __name__ == '__main__':
-    if scraping_consts.DISABLE_WARNINGS:
+    if sc.DISABLE_WARNINGS:
         disable_warnings()
     new_books = get_new_books(debug=True)
     print_titles(new_books)

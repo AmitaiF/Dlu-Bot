@@ -1,6 +1,6 @@
 from recentBooks import get_new_books
 import requests
-import telegramConsts as telegram_consts
+import telegramConsts as tc
 import os
 from dotenv import load_dotenv
 import time
@@ -14,7 +14,9 @@ def main():
 
     while True:
         try:
+            # get the new books
             new_books = get_new_books(ignore_warnings=True)
+            # reverse it, so that we will send the newest books last
             new_books.reverse()
             for book in new_books:
                 title = book[0]
@@ -37,11 +39,11 @@ def main():
 
 
 def send_message(message, bot_token, channel_id):
-    requests.get(telegram_consts.SEND_MSG.format(bot_token, channel_id, message))
+    requests.get(tc.SEND_MSG.format(bot_token, channel_id, message))
 
 
 def send_photo(photo_url, caption, bot_token, channel_id):
-    requests.get(telegram_consts.SEND_PHOTO.format(bot_token, channel_id, photo_url, caption))
+    requests.get(tc.SEND_PHOTO.format(bot_token, channel_id, photo_url, caption))
 
 
 def get_env_value(name):
@@ -50,6 +52,8 @@ def get_env_value(name):
 
 
 def get_better_image(url):
+    # there are 2 links to images, the one we have is smaller.
+    # so we take the url and ,ake it the url of the bigger image
     try:
         new_url = ''
         url = url.strip('/')
